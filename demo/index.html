@@ -1,0 +1,78 @@
+<!doctype html>
+<!--
+@license
+Copyright (c) 2017 Neo
+-->
+<html lang="es">
+<head>
+  <title>nc-simple-dialog demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+
+  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+  <link rel="import" href="../../polymer/polymer-element.html">
+  <link rel="import" href="../../paper-button/paper-button.html">
+
+  <link rel="import" href="../nc-simple-dialog.html">
+  <style>
+    body{
+      margin: 0px;
+      padding: 0px;
+      font-family: 'Roboto', 'Noto', sans-serif;
+    }
+    
+  </style>
+</head>
+<body unresolved>
+<dom-module id="nc-simple-dialog-demo">
+  <template>
+    <style>
+     :host {
+        color: #fff;
+        --app-secondary-color: #253855;
+        display: block;
+      }
+
+      paper-button{
+        margin: 10px 5px;
+        background-color: var(--app-secondary-color);
+        color: white;
+      }
+     
+    </style>
+
+
+    <paper-button raised on-tap="_open">Loyalty Card</paper-button>      
+
+    <nc-simple-dialog
+      id="simpleDialog"
+      language="es"
+      dialog-icon="card-membership"
+      dialog-title="SELECT_LOYALTY_CARD_DIALOG_TITLE"
+      url-translate="/demo/data/translations.json"
+      on-accepted="_accepted"></nc-simple-dialog>
+
+  </template>
+  <script>
+    class NcSimpleDialogDemo extends Polymer.Element {
+      static get is() {
+        return 'nc-simple-dialog-demo';
+      }
+
+      _open(){
+        this.$.simpleDialog.open();
+      }
+
+      _accepted(){
+        console.log('ok !')
+      }
+     
+    }
+    window.customElements.define(NcSimpleDialogDemo.is, NcSimpleDialogDemo);
+  </script>
+</dom-module>
+<nc-simple-dialog-demo></nc-simple-dialog-demo>
+</body>
+</html>

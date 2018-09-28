@@ -1,0 +1,126 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../paper-dialog/paper-dialog.html">
+<link rel="import" href="../neon-animation/web-animations.html">
+<link rel="import" href="../neon-animation/animations/scale-up-animation.html">
+<link rel="import" href="../paper-spinner/paper-spinner.html">
+<link rel="import" href="../app-localize-behavior/app-localize-behavior.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../iron-icon/iron-icon.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import" href="../paper-input/paper-input.html">
+
+<dom-module id="nc-simple-dialog">
+  <template>
+    <style>
+      paper-dialog {
+        width: 400px;
+      }
+      .header {
+        @apply --layout-horizontal;
+        @apply --layout-center;
+      }
+      iron-icon {
+        margin-right: 12px;
+      }
+      .buttons {
+        @apply --layout-horizontal;
+        @apply --layout-center;
+      }
+
+      paper-button{
+        margin: 10px 5px;
+        background-color: var(--app-secondary-color);
+        color: white;
+      }
+    </style>
+
+    <paper-dialog id="simpleDialog" modal entry-animation="scale-up-animation">
+      <div class="header">
+        <iron-icon icon="{{dialogIcon}}"></iron-icon><h3>{{localize(dialogTitle)}}</h3>
+      </div>
+      <div class="content">
+        <p id="errorDiv" class="alert-error" hidden$="[[hideErrorDesc]]">[[errorDesc]]</p>
+
+        <paper-input  error-message="{{localize('INPUT_ERROR_REQUIRED')}}" value="{{formData.value}}" required></paper-input>
+      </div>
+      <div class="buttons">
+        <div hidden$="{{!loading}}">
+          <paper-spinner class="dialog" active></paper-spinner>
+        </div>
+        <paper-button raised dialog-dismiss disabled$="[[loading]]">{{localize('BUTTON_CLOSE')}}</paper-button>
+        <paper-button raised disabled$="[[loading]]" on-tap="_accept">{{localize('BUTTON_ACCEPT')}}</paper-button>
+      </div>
+    </paper-dialog>
+
+  </template>
+
+  <script>
+    
+    class NcSimpleDialog extends Polymer.mixinBehaviors([Polymer.AppLocalizeBehavior], Polymer.Element) {
+      static get is() { return 'nc-simple-dialog'; }
+      static get properties() {
+        return {
+          language: {
+            type: String
+          },
+          formData: {
+            type: Object
+          },
+          hideErrorDesc: {
+            type: Boolean,
+            value: true
+          },
+          errorDesc: String,
+          loading: {
+            type: Boolean,
+            value: false
+          },
+          urlTranslate: String,
+          dialogIcon: String,
+          dialogTitle: String
+        };
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        this.useKeyIfMissing = true;
+        this.loadResources(this.resolveUrl(this.urlTranslate));
+      }
+
+      open(){
+        /* Fix Modal paper-dialog appears behind its backdrop */
+        // var app = document.querySelector('body').firstElementChild.shadowRoot;
+        // Polymer.dom(app).appendChild(this.$.simpleDialog);
+        this.$.simpleDialog.open();
+        this.hideErrorDesc = true;
+        this.errorDesc = "";
+        this.formData = {};
+      }
+
+      _accept(){
+        if (this._validate()) {
+          this.dispatchEvent(new CustomEvent('accepted', {detail: this.formData.value, bubbles: true, composed: true }));
+          this.$.simpleDialog.close();
+        }
+      }
+
+      _validate(){
+        let inputs = Polymer.dom(this.root).querySelectorAll("paper-input,paper-textarea");
+        let firstInvalid = false;
+        let i;
+        for (i = 0; i < inputs.length; i++) {
+          inputs[i].validate();
+        }
+        for (i = 0; i < inputs.length; i++) {
+          if (!firstInvalid && inputs[i].invalid===true) {
+            inputs[i].focus();
+            firstInvalid = true;
+          }
+        }
+        return !firstInvalid;
+      }
+    }
+
+    window.customElements.define(NcSimpleDialog.is, NcSimpleDialog);
+  </script>
+</dom-module>
