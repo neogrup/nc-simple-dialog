@@ -41,13 +41,14 @@
       <div class="content">
         <p id="errorDiv" class="alert-error" hidden$="[[hideErrorDesc]]">[[errorDesc]]</p>
 
-        <paper-input  error-message="{{localize('INPUT_ERROR_REQUIRED')}}" value="{{formData.value}}" required></paper-input>
+        <paper-input error-message="{{localize('INPUT_ERROR_REQUIRED')}}" value="{{formData.value}}" required></paper-input>
       </div>
       <div class="buttons">
         <div hidden$="{{!loading}}">
           <paper-spinner class="dialog" active></paper-spinner>
         </div>
-        <paper-button raised dialog-dismiss disabled$="[[loading]]">{{localize('BUTTON_CLOSE')}}</paper-button>
+
+        <paper-button raised disabled$="[[loading]]" on-tap="_close" hidden$="[[dialogCloseButtonDisabled]]">{{localize('BUTTON_CLOSE')}}</paper-button>
         <paper-button raised disabled$="[[loading]]" on-tap="_accept">{{localize('BUTTON_ACCEPT')}}</paper-button>
       </div>
     </paper-dialog>
@@ -76,8 +77,19 @@
             value: false
           },
           urlTranslate: String,
+          dialogGroup: String,
+          dialogOrigin: String,
           dialogIcon: String,
-          dialogTitle: String
+          dialogTitle: String,
+          dialogCloseButtonDisabled: {
+            type: Boolean,
+            value: false
+          },
+          // Product, ticket, etc.
+          dialogDataAux: {
+            type: Object,
+            value: {}
+          }
         };
       }
 
@@ -88,9 +100,6 @@
       }
 
       open(){
-        /* Fix Modal paper-dialog appears behind its backdrop */
-        // var app = document.querySelector('body').firstElementChild.shadowRoot;
-        // Polymer.dom(app).appendChild(this.$.simpleDialog);
         this.$.simpleDialog.open();
         this.hideErrorDesc = true;
         this.errorDesc = "";
@@ -99,9 +108,14 @@
 
       _accept(){
         if (this._validate()) {
-          this.dispatchEvent(new CustomEvent('accepted', {detail: this.formData.value, bubbles: true, composed: true }));
           this.$.simpleDialog.close();
+          this.dispatchEvent(new CustomEvent('accepted', {detail: {value: this.formData.value, origin: this.dialogOrigin, group: this.dialogGroup, dataAux: this.dialogDataAux}, bubbles: true, composed: true }));
         }
+      }
+
+      _close(){
+        this.$.simpleDialog.close();
+        this.dispatchEvent(new CustomEvent('closed', {detail: {value: '', origin: this.dialogOrigin, group: this.dialogGroup, dataAux: this.dialogDataAux}, bubbles: true, composed: true }));
       }
 
       _validate(){
