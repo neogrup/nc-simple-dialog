@@ -34,13 +34,13 @@
       }
     </style>
 
-    <paper-dialog id="simpleDialog" modal entry-animation="scale-up-animation">
+    <paper-dialog id="simpleDialog" modal entry-animation="scale-up-animation" on-iron-overlay-opened="setFocus">
       <iron-a11y-keys id="a11ySignIn" keys="enter" on-keys-pressed="_accept"></iron-a11y-keys>
       <div class="header">
         <iron-icon icon="{{dialogIcon}}"></iron-icon><h3>{{localize(dialogTitle)}}</h3>
       </div>
       <div class="content">
-        <paper-input autofocus error-message="{{localize('INPUT_ERROR_REQUIRED')}}" value="{{formData.value}}" required></paper-input>
+        <paper-input error-message="{{localize('INPUT_ERROR_REQUIRED')}}" value="{{formData.value}}" required></paper-input>
       </div>
       <div class="buttons">
         <paper-button raised on-tap="_close" hidden$="[[dialogCloseButtonDisabled]]">{{localize('BUTTON_CLOSE')}}</paper-button>
@@ -88,6 +88,10 @@
       open(){
         this.$.simpleDialog.open();
         this.formData = {};
+      }
+
+      setFocus(){
+        this.shadowRoot.querySelector('paper-input').focus();
       }
 
       _accept(){
