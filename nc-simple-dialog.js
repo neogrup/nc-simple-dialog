@@ -18,6 +18,7 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
           width: 400px;
         }
         .header {
+          margin-top: 0px;
           @apply --layout-horizontal;
           @apply --layout-center;
         }
@@ -42,11 +43,12 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
           <iron-icon icon="{{dialogIcon}}"></iron-icon><h3>{{localize(dialogTitle)}}</h3>
         </div>
         <div class="content">
-          <paper-input error-message="{{localize('INPUT_ERROR_REQUIRED')}}" value="{{formData.value}}" required=""></paper-input>
+          <paper-input id="textInput" hidden$="[[hideTextInput]]" type="text" value="{{formData.textValue}}" required error-message="{{localize('INPUT_ERROR_REQUIRED')}}"></paper-input>
+          <paper-input id="numberInput" hidden$="[[hideNumberInput]]" type="number" step="[[dialogInputStep]]" min="[[dialogInputMin]]" max="[[dialogInputMax]]" value="{{formData.numberValue}}" required error-message="{{localize('INPUT_ERROR_REQUIRED')}}"></paper-input>
         </div>
         <div class="buttons">
-          <paper-button raised="" on-tap="_close" hidden\$="[[dialogCloseButtonDisabled]]">{{localize('BUTTON_CLOSE')}}</paper-button>
-          <paper-button raised="" on-tap="_accept">{{localize('BUTTON_ACCEPT')}}</paper-button>
+          <paper-button raised on-tap="_close" hidden\$="[[dialogCloseButtonDisabled]]">{{localize('BUTTON_CLOSE')}}</paper-button>
+          <paper-button raised on-tap="_accept">{{localize('BUTTON_ACCEPT')}}</paper-button>
         </div>
       </paper-dialog>
     `;
@@ -65,6 +67,29 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
       dialogOrigin: String,
       dialogIcon: String,
       dialogTitle: String,
+      hideTextInput: {
+        type: Boolean,
+        value: false
+      },
+      hideNumberInput: {
+        type: Boolean,
+        value: true
+      },
+      dialogInputType: String,
+      dialogInputStep: {
+        type: Number,
+        value: 1
+      },
+      dialogInputMin: {
+        type: Number,
+        value: 1
+      },
+      dialogInputMax: {
+        type: Number,
+        value: 9999
+      },
+      
+      dialogInputValue: String,
       dialogCloseButtonDisabled: {
         type: Boolean,
         value: false
@@ -86,16 +111,60 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
   open(){
     this.$.simpleDialog.open();
     this.formData = {};
+
+    if (this.dialogInputType == 'number'){
+      this.hideTextInput = true;
+      this.hideNumberInput = false;
+
+      // Default values
+      if (!this.dialogInputStep){
+        this.dialogInputStep = 1;
+      }
+      
+      if (!this.dialogInputMin){
+        this.dialogInputMin = 1;
+      }
+      
+      if (!this.dialogInputMax){
+        this.dialogInputMax = 9999;
+      }
+
+      if (this.dialogInputValue) {
+        this.set('formData.numberValue', this.dialogInputValue);
+      } 
+    } else {
+      this.hideTextInput = false;
+      this.hideNumberInput = true;
+      if (this.dialogInputValue) {
+        this.set('formData.textValue', this.dialogInputValue);
+      }
+    }
   }
 
   setFocus(){
-    this.shadowRoot.querySelector('paper-input').focus();
+    if (this.dialogInputType == 'number'){
+      this.$.numberInput.focus();
+      this.$.numberInput.inputElement.inputElement.select();
+    } else{
+      this.$.textInput.focus();
+      this.$.textInput.inputElement.inputElement.select();
+    }
   }
 
   _accept(){
     if (this._validate()) {
       this.$.simpleDialog.close();
-      this.dispatchEvent(new CustomEvent('accepted', {detail: {value: this.formData.value, origin: this.dialogOrigin, group: this.dialogGroup, dataAux: this.dialogDataAux}, bubbles: true, composed: true }));
+
+      let formDataValue;
+
+      if (this.dialogInputType == 'number'){
+        formDataValue = this.formData.numberValue;
+        formDataValue = formDataValue.replace(',','.');
+      } else {
+        formDataValue = this.formData.textValue;
+      }
+
+      this.dispatchEvent(new CustomEvent('accepted', {detail: {value: formDataValue, origin: this.dialogOrigin, group: this.dialogGroup, dataAux: this.dialogDataAux}, bubbles: true, composed: true }));
     }
   }
 
@@ -105,19 +174,29 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
   }
 
   _validate(){
-    let inputs = dom(this.root).querySelectorAll("paper-input,paper-textarea");
-    let firstInvalid = false;
-    let i;
-    for (i = 0; i < inputs.length; i++) {
-      inputs[i].validate();
+    let input;
+    let inputInvalid = false;
+
+    if (this.dialogInputType == 'number'){
+      input = this.$.numberInput;
+    } else{
+      input = this.$.textInput;
     }
-    for (i = 0; i < inputs.length; i++) {
-      if (!firstInvalid && inputs[i].invalid===true) {
-        inputs[i].focus();
-        firstInvalid = true;
+
+    input.validate();
+    
+    if (input.invalid === true){
+      if (this.dialogInputType == 'number'){
+        this.$.numberInput.focus();
+        this.$.numberInput.inputElement.inputElement.select();
+      } else{
+        this.$.textInput.focus();
+        this.$.textInput.inputElement.inputElement.select();
       }
+      inputInvalid = true;
     }
-    return !firstInvalid;
+
+    return !inputInvalid;
   }
 }
 
