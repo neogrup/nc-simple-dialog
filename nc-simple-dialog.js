@@ -44,7 +44,7 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
         </div>
         <div class="content">
           <paper-input id="textInput" hidden$="[[hideTextInput]]" type="text" value="{{formData.textValue}}" required error-message="{{localize('INPUT_ERROR_REQUIRED')}}"></paper-input>
-          <paper-input id="numberInput" hidden$="[[hideNumberInput]]" type="number" step="[[dialogInputStep]]" min="[[dialogInputMin]]" max="[[dialogInputMax]]" value="{{formData.numberValue}}" required error-message="{{localize('INPUT_ERROR_REQUIRED')}}"></paper-input>
+          <paper-input id="numberInput" hidden$="[[hideNumberInput]]" type="number" step="[[dialogInputStep]]" min="[[dialogInputMin]]" max="[[dialogInputMax]]" value="{{formData.numberValue}}" required error-message="{{localize('INPUT_ERROR_INVALID_VALUE')}}"></paper-input>
         </div>
         <div class="buttons">
           <paper-button raised on-tap="_close" hidden\$="[[dialogCloseButtonDisabled]]">{{localize('BUTTON_CLOSE')}}</paper-button>
@@ -122,11 +122,15 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
       }
       
       if (!this.dialogInputMin){
-        this.dialogInputMin = 1;
+        if (this.dialogInputMin !== 0){
+          this.dialogInputMin = 1;
+        }
       }
       
       if (!this.dialogInputMax){
-        this.dialogInputMax = 9999;
+        if (this.dialogInputMax !== 0){
+          this.dialogInputMax = 9999;
+        }
       }
 
       if (this.dialogInputValue) {
