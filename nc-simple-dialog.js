@@ -37,7 +37,7 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
         }
       </style>
 
-      <paper-dialog id="simpleDialog" modal entry-animation="scale-up-animation" on-iron-overlay-opened="setFocus">
+      <paper-dialog id="simpleDialog" modal entry-animation="scale-up-animation" on-iron-overlay-opened="setFocus" dialog>
         <iron-a11y-keys id="a11ySignIn" keys="enter" on-keys-pressed="_accept"></iron-a11y-keys>
         <div class="header">
           <iron-icon icon="{{dialogIcon}}"></iron-icon><h3>{{localize(dialogTitle)}}</h3>
