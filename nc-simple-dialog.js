@@ -163,7 +163,7 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
 
       if (this.dialogInputType == 'number'){
         formDataValue = this.formData.numberValue;
-        formDataValue = formDataValue.replace(',','.');
+        formDataValue = formDataValue.toString().replace(',','.');
       } else {
         formDataValue = this.formData.textValue;
       }
