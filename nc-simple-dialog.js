@@ -43,7 +43,7 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
           <iron-icon icon="{{dialogIcon}}"></iron-icon><h3>{{localize(dialogTitle)}}</h3>
         </div>
         <div class="content">
-          <paper-input id="textInput" hidden$="[[hideTextInput]]" type="text" value="{{formData.textValue}}" required error-message="{{localize('INPUT_ERROR_REQUIRED')}}"></paper-input>
+          <paper-input id="textInput" hidden$="[[hideTextInput]]" type="text" value="{{formData.textValue}}" required="[[inputRequired]]" error-message="{{localize('INPUT_ERROR_REQUIRED')}}"></paper-input>
           <paper-input id="numberInput" hidden$="[[hideNumberInput]]" type="number" step="[[dialogInputStep]]" min="[[dialogInputMin]]" max="[[dialogInputMax]]" value="{{formData.numberValue}}" required error-message="{{localize('INPUT_ERROR_INVALID_VALUE')}}"></paper-input>
         </div>
         <div class="buttons">
@@ -98,7 +98,16 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
       dialogDataAux: {
         type: Object,
         value: {}
+      },
+      inputRequired: {
+        type: Boolean,
+        value: true
+      },
+      dialogInputNotRequired: {
+        type: Boolean,
+        value: false
       }
+      
     };
   }
 
@@ -110,7 +119,15 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
 
   open(){
     this.$.simpleDialog.open();
+    this.$.numberInput.invalid = false;
+    this.$.textInput.invalid = false;
     this.formData = {};
+
+    if (this.dialogInputNotRequired){
+      this.inputRequired = false;
+    } else{
+      this.inputRequired = true;
+    }
 
     if (this.dialogInputType == 'number'){
       this.hideTextInput = true;
