@@ -349,8 +349,8 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
     if (input.invalid === true){
       if (this.showKeyboard == "N") {
         if (this.dialogInputType == 'number'){
-          this.$.numberInput.focus();
-          this.$.numberInput.inputElement.inputElement.select();
+          this.shadowRoot.querySelector("#numberInput").focus();
+          this.shadowRoot.querySelector("#numberInput").inputElement.inputElement.select();
         } else{
           this.$.textInput.focus();
           this.$.textInput.inputElement.inputElement.select();
