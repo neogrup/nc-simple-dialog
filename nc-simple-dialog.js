@@ -6,6 +6,7 @@ import '@polymer/iron-icon/iron-icon.js';
 import '@polymer/iron-icons/iron-icons.js';
 import '@polymer/paper-input/paper-input.js';
 import '@polymer/iron-a11y-keys/iron-a11y-keys.js';
+import '@neogrup/nc-keyboard/nc-keyboard.js';
 import { Debouncer } from '@polymer/polymer/lib/utils/debounce.js';
 import { timeOut } from '@polymer/polymer/lib/utils/async.js';
 import { dom } from '@polymer/polymer/lib/legacy/polymer.dom.js';
@@ -16,9 +17,41 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
   static get template() {
     return html`
       <style>
-        paper-dialog {
-          width: 400px;
+        :host{
+          --paper-dialog-width: 400px;
         }
+
+        paper-dialog {
+          width: var(--paper-dialog-width);
+        }
+
+        @media (min-width: 1660px) {
+          paper-dialog {
+            max-width: 1460px;
+          }
+        }
+
+        .content{
+          margin-top: 0px;
+        }
+
+        div.content > div.content-numeric {
+          @apply --layout-horizontal;
+          @apply --layout-center;
+          @apply --layout-center-justified;
+        }
+
+        div.content > div.content-numeric > div.numeric {
+          width: 140px;
+        }
+
+
+        div.content > div.content-numeric > div.numeric > paper-input{
+          --paper-input-container-input: {
+            text-align: center;
+          };
+        }
+        
         .header {
           margin-top: 0px;
           @apply --layout-horizontal;
@@ -27,6 +60,7 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
         iron-icon {
           margin-right: 12px;
         }
+
         .buttons {
           @apply --layout-horizontal;
           @apply --layout-center;
@@ -37,6 +71,14 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
           background-color: var(--app-secondary-color);
           color: white;
         }
+
+        paper-button.delete:not([disabled]){
+          background-color: var(--error-color);
+        }
+
+        paper-button.accept:not([disabled]){
+          background-color: var(--success-color);
+        }
       </style>
 
       <paper-dialog id="simpleDialog" modal dialog>
@@ -45,12 +87,36 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
           <iron-icon icon="{{dialogIcon}}"></iron-icon><h3>{{localize(dialogTitle)}}</h3>
         </div>
         <div class="content">
-          <paper-input id="textInput" hidden$="[[hideTextInput]]" type="text" value="{{formData.textValue}}" required="[[inputRequired]]" error-message="{{localize('INPUT_ERROR_REQUIRED')}}" on-focus="_setFocus" on-blur="_setBlur"></paper-input>
-          <paper-input id="numberInput" hidden$="[[hideNumberInput]]" type="number" step="[[dialogInputStep]]" min="[[dialogInputMin]]" max="[[dialogInputMax]]" value="{{formData.numberValue}}" required error-message="{{localize('INPUT_ERROR_INVALID_VALUE')}}" on-focus="_setFocus" on-blur="_setBlur"></paper-input>
+          <div class="content-text">
+            <paper-input id="textInput" hidden$="[[hideTextInput]]" type="text" value="{{formData.textValue}}" required="[[inputRequired]]" error-message="{{localize('INPUT_ERROR_REQUIRED')}}" on-focus="_setFocus" on-blur="_setBlur"></paper-input>
+          </div>
+          
+          <div class="content-numeric">
+            <template is="dom-if" if="{{showNumberInput}}">
+              <div class="numeric">
+                <paper-input id="numberInput" hidden$="[[hideNumberInput]]" type="number" step="[[dialogInputStep]]" min="[[dialogInputMin]]" max="[[dialogInputMax]]" value="{{formData.numberValue}}" required error-message="{{localize('INPUT_ERROR_INVALID_VALUE')}}" on-focus="_setFocus" on-blur="_setBlur"></paper-input>
+              </div>
+            </template>
+            
+            <template is="dom-if" if="{{showNumberInputKeyboard}}">
+              <div class="numeric">
+                <paper-input id="numberInputKeyboard" hidden$="[[hideNumberInputKeyboard]]" type="text" value="{{formData.numberValue}}" required error-message="{{localize('INPUT_ERROR_INVALID_VALUE')}}">
+              </div>
+            </template>
+          </div>
+        </div>
+        <div class="content-keyboard">
+          <nc-keyboard
+            keyboard-enabled="{{showKeyboard}}"
+            keyboard-embedded='S'
+            keyboard-type="{{keyboardType}}"
+            value="{{keyboardValue}}"
+            >
+          </nc-keyboard>
         </div>
         <div class="buttons">
-          <paper-button raised on-tap="_close" hidden\$="[[dialogCloseButtonDisabled]]">{{localize('BUTTON_CLOSE')}}</paper-button>
-          <paper-button raised on-tap="_accept">{{localize('BUTTON_ACCEPT')}}</paper-button>
+          <paper-button raised on-tap="_close" class="delete" hidden\$="[[dialogCloseButtonDisabled]]">{{localize('BUTTON_CLOSE')}}</paper-button>
+          <paper-button raised on-tap="_accept" class="accept">{{localize('BUTTON_ACCEPT')}}</paper-button>
         </div>
       </paper-dialog>
     `;
@@ -74,6 +140,10 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
         value: false
       },
       hideNumberInput: {
+        type: Boolean,
+        value: true
+      },
+      hideNumberInputKeyboard: {
         type: Boolean,
         value: true
       },
@@ -108,8 +178,26 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
       dialogInputNotRequired: {
         type: Boolean,
         value: false
+      },
+      showKeyboard: {
+        type: String,
+      },
+      showNumberInput: {
+        type: Boolean,
+        value: false
+      },
+      showNumberInputKeyboard: {
+        type: Boolean,
+        value: false
+      },
+      keyboardValue: {
+        type: String,
+        observer: '_keyboardValueChanged'
+      },
+      keyboardType: {
+        type: String,
+        value: 'keyboard'
       }
-      
     };
   }
 
@@ -120,10 +208,12 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
   }
 
   open(){
+    
     this.$.simpleDialog.open();
-    this.$.numberInput.invalid = false;
+    let paperDialogWidth = "400px";
     this.$.textInput.invalid = false;
     this.formData = {};
+    this.keyboardValue = "";
 
     if (this.dialogInputNotRequired){
       this.inputRequired = false;
@@ -133,47 +223,85 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
 
     if (this.dialogInputType == 'number'){
       this.hideTextInput = true;
-      this.hideNumberInput = false;
+      this.set('keyboardType', 'keyboardNumeric');
 
-      // Default values
-      if (!this.dialogInputStep){
-        this.dialogInputStep = 1;
-      }
-      
-      if (!this.dialogInputMin){
-        if (this.dialogInputMin !== 0){
-          this.dialogInputMin = 1;
+      if (this.showKeyboard == "S") {
+        this.hideNumberInput = true;
+        this.hideNumberInputKeyboard = false;
+      } else {
+        this.hideNumberInput = false;
+        this.hideNumberInputKeyboard = true;
+        // Default values
+        if (!this.dialogInputStep){
+          this.dialogInputStep = 1;
         }
-      }
-      
-      if (!this.dialogInputMax){
-        if (this.dialogInputMax !== 0){
-          this.dialogInputMax = 9999;
+        
+        if (!this.dialogInputMin){
+          if (this.dialogInputMin !== 0){
+            this.dialogInputMin = 1;
+          }
+        }
+        
+        if (!this.dialogInputMax){
+          if (this.dialogInputMax !== 0){
+            this.dialogInputMax = 9999;
+          }
         }
       }
 
       if (this.dialogInputValue) {
         this.set('formData.numberValue', this.dialogInputValue);
+        this.set('keyboardValue', this.dialogInputValue);
       } 
     } else {
       this.hideTextInput = false;
       this.hideNumberInput = true;
+      this.hideNumberInputKeyboard = true;
+      this.set('keyboardType', 'keyboard');
       if (this.dialogInputValue) {
         this.set('formData.textValue', this.dialogInputValue);
+        this.set('keyboardValue', this.dialogInputValue);
+      }
+      if (this.showKeyboard == "S") {
+        paperDialogWidth = "95%";
       }
     }
 
-    this._setFocusDebouncer = Debouncer.debounce(this._setFocusDebouncer,
-      timeOut.after(500),
-      () => this.setFocus()
-    );
+    if (this.showKeyboard == "S") {
+      this.showNumberInput = false;
+      this.showNumberInputKeyboard = true;
+      if (this.shadowRoot.querySelector("#numberInputKeyboard")) {
+        this.shadowRoot.querySelector("#numberInputKeyboard").invalid = false;
+      }
+    } else {
+      this.showNumberInput = true;
+      this.showNumberInputKeyboard = false;
+      if (this.shadowRoot.querySelector("#numberInput")) {
+        this.shadowRoot.querySelector("#numberInput").invalid = false;
+      }
+      this._setFocusDebouncer = Debouncer.debounce(this._setFocusDebouncer,
+        timeOut.after(500),
+        () => this.setFocus()
+      );
+    }
     
+    this.updateStyles({
+      '--paper-dialog-width':  paperDialogWidth,
+    });
+  }
+
+  _keyboardValueChanged(){
+    if (this.dialogInputType == 'number'){
+      this.set('formData.numberValue', this.keyboardValue);
+    } else {
+      this.set('formData.textValue', this.keyboardValue);
+    }
   }
 
   setFocus(){
     if (this.dialogInputType == 'number'){
-      this.$.numberInput.focus();
-      this.$.numberInput.inputElement.inputElement.select();
+      this.shadowRoot.querySelector("#numberInput").focus();
+      this.shadowRoot.querySelector("#numberInput").inputElement.inputElement.select();
     } else{
       this.$.textInput.focus();
       this.$.textInput.inputElement.inputElement.select();
@@ -207,7 +335,11 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
     let inputInvalid = false;
 
     if (this.dialogInputType == 'number'){
-      input = this.$.numberInput;
+      if (this.showKeyboard == "S") {
+        input = this.shadowRoot.querySelector("#numberInputKeyboard");
+      } else {
+        input = this.shadowRoot.querySelector("#numberInput");
+      }
     } else{
       input = this.$.textInput;
     }
@@ -215,14 +347,23 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
     input.validate();
     
     if (input.invalid === true){
-      if (this.dialogInputType == 'number'){
-        this.$.numberInput.focus();
-        this.$.numberInput.inputElement.inputElement.select();
-      } else{
-        this.$.textInput.focus();
-        this.$.textInput.inputElement.inputElement.select();
+      if (this.showKeyboard == "N") {
+        if (this.dialogInputType == 'number'){
+          this.$.numberInput.focus();
+          this.$.numberInput.inputElement.inputElement.select();
+        } else{
+          this.$.textInput.focus();
+          this.$.textInput.inputElement.inputElement.select();
+        }
       }
       inputInvalid = true;
+    } else {
+      if ((this.dialogInputType == 'number') && (this.showKeyboard == "S")) {
+        if (isNaN(this.formData.numberValue)){
+          this.shadowRoot.querySelector("#numberInputKeyboard").invalid=true;
+          inputInvalid = true;
+        }
+      }
     }
 
     return !inputInvalid;

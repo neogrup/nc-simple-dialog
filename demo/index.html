@@ -47,6 +47,8 @@ Copyright (c) 2017 Neo
             :host {
               color: #fff;
               --app-secondary-color: #253855;
+              --error-color: #F44336;
+              --success-color: #388E3C;
               display: block;
             }
             paper-button{
@@ -64,7 +66,8 @@ Copyright (c) 2017 Neo
               dialog-icon="card-membership"
               dialog-title="SELECT_LOYALTY_CARD_DIALOG_TITLE"
               url-translate="/demo/data/translations.json"
-              on-accepted="_accepted">
+              on-accepted="_accepted"
+              show-keyboard="N">
           </nc-simple-dialog>
         `;
       }
