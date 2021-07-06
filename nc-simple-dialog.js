@@ -90,6 +90,10 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
           <div class="content-text">
             <paper-input id="textInput" hidden$="[[hideTextInput]]" type="text" value="{{formData.textValue}}" required="[[inputRequired]]" error-message="{{localize('INPUT_ERROR_REQUIRED')}}" on-focus="_setFocus" on-blur="_setBlur"></paper-input>
           </div>
+
+          <div class="content-email">
+            <paper-input id="emailInput" hidden$="[[hideEmailInput]]" type="email" value="{{formData.emailValue}}" required="[[inputRequired]]" error-message="{{localize('INPUT_ERROR_INVALID_EMAIL')}}" on-focus="_setFocus" on-blur="_setBlur"></paper-input>
+          </div>
           
           <div class="content-numeric">
             <template is="dom-if" if="{{showNumberInput}}">
@@ -138,6 +142,10 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
       hideTextInput: {
         type: Boolean,
         value: false
+      },
+      hideEmailInput: {
+        type: Boolean,
+        value: true
       },
       hideNumberInput: {
         type: Boolean,
@@ -212,6 +220,7 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
     this.$.simpleDialog.open();
     let paperDialogWidth = "400px";
     this.$.textInput.invalid = false;
+    this.$.emailInput.invalid = false;
     this.formData = {};
     this.keyboardValue = "";
 
@@ -221,51 +230,73 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
       this.inputRequired = true;
     }
 
-    if (this.dialogInputType == 'number'){
-      this.hideTextInput = true;
-      this.set('keyboardType', 'keyboardNumeric');
+    switch (this.dialogInputType) {
+      case 'number':
+        this.hideTextInput = true;
+        this.hideEmailInput = true;
+        this.set('keyboardType', 'keyboardNumeric');
 
-      if (this.showKeyboard == "S") {
+        if (this.showKeyboard == "S") {
+          this.hideNumberInput = true;
+          this.hideNumberInputKeyboard = false;
+        } else {
+          this.hideNumberInput = false;
+          this.hideNumberInputKeyboard = true;
+          // Default values
+          if (!this.dialogInputStep){
+            this.dialogInputStep = 1;
+          }
+          
+          if (!this.dialogInputMin){
+            if (this.dialogInputMin !== 0){
+              this.dialogInputMin = 1;
+            }
+          }
+          
+          if (!this.dialogInputMax){
+            if (this.dialogInputMax !== 0){
+              this.dialogInputMax = 9999;
+            }
+          }
+        }
+
+        if (this.dialogInputValue) {
+          this.set('formData.numberValue', this.dialogInputValue);
+          this.set('keyboardValue', this.dialogInputValue);
+        } 
+        break;
+    
+      case 'email':
+        this.hideTextInput = true;
+        this.hideEmailInput = false;
         this.hideNumberInput = true;
-        this.hideNumberInputKeyboard = false;
-      } else {
-        this.hideNumberInput = false;
         this.hideNumberInputKeyboard = true;
-        // Default values
-        if (!this.dialogInputStep){
-          this.dialogInputStep = 1;
+        this.set('keyboardType', 'keyboard');
+        if (this.dialogInputValue) {
+          this.set('formData.emailValue', this.dialogInputValue);
+          this.set('keyboardValue', this.dialogInputValue);
         }
-        
-        if (!this.dialogInputMin){
-          if (this.dialogInputMin !== 0){
-            this.dialogInputMin = 1;
-          }
+        if (this.showKeyboard == "S") {
+          paperDialogWidth = "95%";
         }
-        
-        if (!this.dialogInputMax){
-          if (this.dialogInputMax !== 0){
-            this.dialogInputMax = 9999;
-          }
-        }
-      }
+        break;
 
-      if (this.dialogInputValue) {
-        this.set('formData.numberValue', this.dialogInputValue);
-        this.set('keyboardValue', this.dialogInputValue);
-      } 
-    } else {
-      this.hideTextInput = false;
-      this.hideNumberInput = true;
-      this.hideNumberInputKeyboard = true;
-      this.set('keyboardType', 'keyboard');
-      if (this.dialogInputValue) {
-        this.set('formData.textValue', this.dialogInputValue);
-        this.set('keyboardValue', this.dialogInputValue);
-      }
-      if (this.showKeyboard == "S") {
-        paperDialogWidth = "95%";
-      }
+      default:
+        this.hideTextInput = false;
+        this.hideEmailInput = true;
+        this.hideNumberInput = true;
+        this.hideNumberInputKeyboard = true;
+        this.set('keyboardType', 'keyboard');
+        if (this.dialogInputValue) {
+          this.set('formData.textValue', this.dialogInputValue);
+          this.set('keyboardValue', this.dialogInputValue);
+        }
+        if (this.showKeyboard == "S") {
+          paperDialogWidth = "95%";
+        }
+        break;
     }
+
 
     if (this.showKeyboard == "S") {
       this.showNumberInput = false;
@@ -291,20 +322,33 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
   }
 
   _keyboardValueChanged(){
-    if (this.dialogInputType == 'number'){
-      this.set('formData.numberValue', this.keyboardValue);
-    } else {
-      this.set('formData.textValue', this.keyboardValue);
+    switch (this.dialogInputType) {
+      case 'number':
+        this.set('formData.numberValue', this.keyboardValue);
+        break;
+      case 'email':
+        this.set('formData.emailValue', this.keyboardValue);
+        break;
+      default:
+        this.set('formData.textValue', this.keyboardValue);
+        break;
     }
   }
 
   setFocus(){
-    if (this.dialogInputType == 'number'){
-      this.shadowRoot.querySelector("#numberInput").focus();
-      this.shadowRoot.querySelector("#numberInput").inputElement.inputElement.select();
-    } else{
-      this.$.textInput.focus();
-      this.$.textInput.inputElement.inputElement.select();
+    switch (this.dialogInputType) {
+      case 'number':
+        this.shadowRoot.querySelector("#numberInput").focus();
+        this.shadowRoot.querySelector("#numberInput").inputElement.inputElement.select();
+        break;
+      case 'email':
+        this.$.emailInput.focus();
+        this.$.emailInput.inputElement.inputElement.select();
+        break;
+      default:
+        this.$.textInput.focus();
+        this.$.textInput.inputElement.inputElement.select();
+        break;
     }
   }
 
@@ -313,13 +357,19 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
       this.$.simpleDialog.close();
 
       let formDataValue;
-
-      if (this.dialogInputType == 'number'){
-        formDataValue = this.formData.numberValue;
-        formDataValue = formDataValue.toString().replace(',','.');
-      } else {
-        formDataValue = this.formData.textValue;
+      switch (this.dialogInputType) {
+        case 'number':
+          formDataValue = this.formData.numberValue;
+          formDataValue = formDataValue.toString().replace(',','.');
+          break;
+        case 'email':
+          formDataValue = this.formData.emailValue;
+          break;
+        default:
+          formDataValue = this.formData.textValue;
+          break;
       }
+
 
       this.dispatchEvent(new CustomEvent('accepted', {detail: {value: formDataValue, origin: this.dialogOrigin, group: this.dialogGroup, dataAux: this.dialogDataAux}, bubbles: true, composed: true }));
     }
@@ -334,36 +384,66 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
     let input;
     let inputInvalid = false;
 
-    if (this.dialogInputType == 'number'){
-      if (this.showKeyboard == "S") {
-        input = this.shadowRoot.querySelector("#numberInputKeyboard");
-      } else {
-        input = this.shadowRoot.querySelector("#numberInput");
-      }
-    } else{
-      input = this.$.textInput;
+
+    switch (this.dialogInputType) {
+      case 'number':
+        if (this.showKeyboard == "S") {
+          input = this.shadowRoot.querySelector("#numberInputKeyboard");
+        } else {
+          input = this.shadowRoot.querySelector("#numberInput");
+        }
+        break;
+      case 'email':
+        input = this.$.emailInput;
+        break;
+      default:
+        input = this.$.textInput;
+        break;
     }
 
     input.validate();
     
     if (input.invalid === true){
       if (this.showKeyboard == "N") {
-        if (this.dialogInputType == 'number'){
-          this.shadowRoot.querySelector("#numberInput").focus();
-          this.shadowRoot.querySelector("#numberInput").inputElement.inputElement.select();
-        } else{
-          this.$.textInput.focus();
-          this.$.textInput.inputElement.inputElement.select();
+        switch (this.dialogInputType) {
+          case 'number':
+            this.shadowRoot.querySelector("#numberInput").focus();
+            this.shadowRoot.querySelector("#numberInput").inputElement.inputElement.select();
+            break;
+          case 'email':
+            this.$.emailInput.focus();
+            this.$.emailInput.inputElement.inputElement.select();
+            break;
+          default:
+            this.$.textInput.focus();
+            this.$.textInput.inputElement.inputElement.select();
+            break;
         }
       }
       inputInvalid = true;
     } else {
-      if ((this.dialogInputType == 'number') && (this.showKeyboard == "S")) {
-        if (isNaN(this.formData.numberValue)){
-          this.shadowRoot.querySelector("#numberInputKeyboard").invalid=true;
-          inputInvalid = true;
-        }
+      switch (this.dialogInputType) {
+        case 'number':
+          if (this.showKeyboard == "S") {
+            if (isNaN(this.formData.numberValue)){
+              this.shadowRoot.querySelector("#numberInputKeyboard").invalid=true;
+              inputInvalid = true;
+            }
+          }
+          break;
+        case 'email':
+          if (input.value){
+            let mailformat = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
+            if(!input.value.match(mailformat)){
+              this.shadowRoot.querySelector("#emailInput").invalid=true;
+              inputInvalid = true;
+            }
+          }
+          break;
+        default:
+          break;
       }
+      
     }
 
     return !inputInvalid;
