@@ -88,23 +88,23 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
         </div>
         <div class="content">
           <div class="content-text">
-            <paper-input id="textInput" hidden$="[[hideTextInput]]" type="text" value="{{formData.textValue}}" required="[[inputRequired]]" error-message="{{localize('INPUT_ERROR_REQUIRED')}}" on-focus="_setFocus" on-blur="_setBlur"></paper-input>
+            <paper-input id="textInput" hidden$="[[hideTextInput]]" type="text" value="{{formData.textValue}}" required="[[inputRequired]]" error-message="{{localize('INPUT_ERROR_REQUIRED')}}" on-focused-changed="_focusChanged" on-value-changed="_valueChanged"></paper-input>
           </div>
 
           <div class="content-email">
-            <paper-input id="emailInput" hidden$="[[hideEmailInput]]" type="email" value="{{formData.emailValue}}" required="[[inputRequired]]" error-message="{{localize('INPUT_ERROR_INVALID_EMAIL')}}" on-focus="_setFocus" on-blur="_setBlur"></paper-input>
+            <paper-input id="emailInput" hidden$="[[hideEmailInput]]" type="email" value="{{formData.emailValue}}" required="[[inputRequired]]" error-message="{{localize('INPUT_ERROR_INVALID_EMAIL')}}" on-focused-changed="_focusChanged" on-value-changed="_valueChanged"></paper-input>
           </div>
           
           <div class="content-numeric">
             <template is="dom-if" if="{{showNumberInput}}">
               <div class="numeric">
-                <paper-input id="numberInput" hidden$="[[hideNumberInput]]" type="number" step="[[dialogInputStep]]" min="[[dialogInputMin]]" max="[[dialogInputMax]]" value="{{formData.numberValue}}" required error-message="{{localize('INPUT_ERROR_INVALID_VALUE')}}" on-focus="_setFocus" on-blur="_setBlur"></paper-input>
+                <paper-input id="numberInput" hidden$="[[hideNumberInput]]" type="number" step="[[dialogInputStep]]" min="[[dialogInputMin]]" max="[[dialogInputMax]]" value="{{formData.numberValue}}" required error-message="{{localize('INPUT_ERROR_INVALID_VALUE')}}" on-focused-changed="_focusChanged" on-value-changed="_valueChanged"></paper-input>
               </div>
             </template>
             
             <template is="dom-if" if="{{showNumberInputKeyboard}}">
               <div class="numeric">
-                <paper-input id="numberInputKeyboard" hidden$="[[hideNumberInputKeyboard]]" type="text" value="{{formData.numberValue}}" required error-message="{{localize('INPUT_ERROR_INVALID_VALUE')}}">
+                <paper-input id="numberInputKeyboard" hidden$="[[hideNumberInputKeyboard]]" type="text" value="{{formData.numberValue}}" required error-message="{{localize('INPUT_ERROR_INVALID_VALUE')}}" on-focused-changed="_focusChanged" on-value-changed="_valueChanged">
               </div>
             </template>
           </div>
@@ -216,13 +216,13 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
   }
 
   open(){
-    
     this.$.simpleDialog.open();
     let paperDialogWidth = "400px";
     this.$.textInput.invalid = false;
     this.$.emailInput.invalid = false;
     this.formData = {};
     this.keyboardValue = "";
+    this.currentInput = "";
 
     if (this.dialogInputNotRequired){
       this.inputRequired = false;
@@ -237,11 +237,23 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
         this.set('keyboardType', 'keyboardNumeric');
 
         if (this.showKeyboard == "S") {
+          this.currentInput = "numberInputKeyboard"
           this.hideNumberInput = true;
           this.hideNumberInputKeyboard = false;
+          this.showNumberInput = false;
+          this.showNumberInputKeyboard = true;
+          if (this.shadowRoot.querySelector("#numberInputKeyboard")) {
+            this.shadowRoot.querySelector("#numberInputKeyboard").invalid = false;
+          }
         } else {
+          this.currentInput = "numberInput"
           this.hideNumberInput = false;
           this.hideNumberInputKeyboard = true;
+          this.showNumberInput = true;
+          this.showNumberInputKeyboard = false;
+          if (this.shadowRoot.querySelector("#numberInput")) {
+            this.shadowRoot.querySelector("#numberInput").invalid = false;
+          }
           // Default values
           if (!this.dialogInputStep){
             this.dialogInputStep = 1;
@@ -271,6 +283,7 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
         this.hideEmailInput = false;
         this.hideNumberInput = true;
         this.hideNumberInputKeyboard = true;
+        this.currentInput = "emailInput"
         this.set('keyboardType', 'keyboard');
         if (this.dialogInputValue) {
           this.set('formData.emailValue', this.dialogInputValue);
@@ -286,6 +299,7 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
         this.hideEmailInput = true;
         this.hideNumberInput = true;
         this.hideNumberInputKeyboard = true;
+        this.currentInput = "textInput"
         this.set('keyboardType', 'keyboard');
         if (this.dialogInputValue) {
           this.set('formData.textValue', this.dialogInputValue);
@@ -297,24 +311,10 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
         break;
     }
 
-
-    if (this.showKeyboard == "S") {
-      this.showNumberInput = false;
-      this.showNumberInputKeyboard = true;
-      if (this.shadowRoot.querySelector("#numberInputKeyboard")) {
-        this.shadowRoot.querySelector("#numberInputKeyboard").invalid = false;
-      }
-    } else {
-      this.showNumberInput = true;
-      this.showNumberInputKeyboard = false;
-      if (this.shadowRoot.querySelector("#numberInput")) {
-        this.shadowRoot.querySelector("#numberInput").invalid = false;
-      }
-      this._setFocusDebouncer = Debouncer.debounce(this._setFocusDebouncer,
-        timeOut.after(500),
-        () => this.setFocus()
-      );
-    }
+    this._setFocusDebouncer = Debouncer.debounce(this._setFocusDebouncer,
+      timeOut.after(500),
+      () => this._setFocus()
+    );
     
     this.updateStyles({
       '--paper-dialog-width':  paperDialogWidth,
@@ -322,33 +322,43 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
   }
 
   _keyboardValueChanged(){
-    switch (this.dialogInputType) {
-      case 'number':
-        this.set('formData.numberValue', this.keyboardValue);
-        break;
-      case 'email':
-        this.set('formData.emailValue', this.keyboardValue);
-        break;
-      default:
-        this.set('formData.textValue', this.keyboardValue);
-        break;
+    let input;
+    input = this.shadowRoot.querySelector("#" + this.currentInput);
+
+    if (input){
+      input.value = this.keyboardValue;
     }
   }
 
-  setFocus(){
-    switch (this.dialogInputType) {
-      case 'number':
-        this.shadowRoot.querySelector("#numberInput").focus();
-        this.shadowRoot.querySelector("#numberInput").inputElement.inputElement.select();
-        break;
-      case 'email':
-        this.$.emailInput.focus();
-        this.$.emailInput.inputElement.inputElement.select();
-        break;
-      default:
-        this.$.textInput.focus();
-        this.$.textInput.inputElement.inputElement.select();
-        break;
+  _focusChanged(e){
+    if (e.detail.value == true){
+      this.currentInput = e.target.id;
+      
+      let input;
+      input = this.shadowRoot.querySelector("#" + this.currentInput);
+      if (input){
+        this.keyboardValue = input.value;
+      }
+    }
+  }
+
+  _valueChanged(e){
+    this.keyboardValue = e.detail.value;
+
+    if (this.showKeyboard == "S") {
+      this._setFocus();
+    }
+  }
+
+  _setFocus(){
+    let input;
+    input = this.shadowRoot.querySelector("#" + this.currentInput);
+
+    if (input){
+      if (!input.focused){
+        input.focus();
+        input.inputElement.inputElement.select();
+      }
     }
   }
 
@@ -384,50 +394,20 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
     let input;
     let inputInvalid = false;
 
-
-    switch (this.dialogInputType) {
-      case 'number':
-        if (this.showKeyboard == "S") {
-          input = this.shadowRoot.querySelector("#numberInputKeyboard");
-        } else {
-          input = this.shadowRoot.querySelector("#numberInput");
-        }
-        break;
-      case 'email':
-        input = this.$.emailInput;
-        break;
-      default:
-        input = this.$.textInput;
-        break;
-    }
-
+    input = this.shadowRoot.querySelector("#" + this.currentInput);
     input.validate();
     
     if (input.invalid === true){
-      if (this.showKeyboard == "N") {
-        switch (this.dialogInputType) {
-          case 'number':
-            this.shadowRoot.querySelector("#numberInput").focus();
-            this.shadowRoot.querySelector("#numberInput").inputElement.inputElement.select();
-            break;
-          case 'email':
-            this.$.emailInput.focus();
-            this.$.emailInput.inputElement.inputElement.select();
-            break;
-          default:
-            this.$.textInput.focus();
-            this.$.textInput.inputElement.inputElement.select();
-            break;
-        }
-      }
       inputInvalid = true;
+      this._setFocus();
     } else {
       switch (this.dialogInputType) {
         case 'number':
           if (this.showKeyboard == "S") {
             if (isNaN(this.formData.numberValue)){
-              this.shadowRoot.querySelector("#numberInputKeyboard").invalid=true;
+              input.invalid=true;
               inputInvalid = true;
+              this._setFocus();
             }
           }
           break;
@@ -435,8 +415,9 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
           if (input.value){
             let mailformat = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
             if(!input.value.match(mailformat)){
-              this.shadowRoot.querySelector("#emailInput").invalid=true;
+              input.invalid=true;
               inputInvalid = true;
+              this._setFocus();
             }
           }
           break;
@@ -449,16 +430,6 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
     return !inputInvalid;
   }
 
-  _setFocus(){
-    this.dispatchEvent(new CustomEvent('inputFocus', {bubbles: true, composed: true }));
-  }
-
-  _setBlur(){
-    this._debouncer = Debouncer.debounce(this._debouncer,
-      timeOut.after(500),
-      () => this.dispatchEvent(new CustomEvent('inputBlur', {bubbles: true, composed: true }))
-    );
-  }
 }
 
 window.customElements.define('nc-simple-dialog', NcSimpleDialog);
