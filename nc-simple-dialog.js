@@ -45,11 +45,24 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
           width: 140px;
         }
 
-
         div.content > div.content-numeric > div.numeric > paper-input{
           --paper-input-container-input: {
             text-align: center;
+            font-size: var(--paper-dialog-font-size);
           };
+          --paper-input-suffix: {
+            font-size: var(--paper-dialog-font-size);
+          };
+        }
+
+        paper-input{
+          --paper-input-container-input: {
+            font-size: var(--paper-dialog-font-size);
+          };
+          --paper-input-suffix: {
+            font-size: var(--paper-dialog-font-size);
+          };
+          
         }
         
         .header {
@@ -57,8 +70,11 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
           @apply --layout-horizontal;
           @apply --layout-center;
         }
+
         iron-icon {
           margin-right: 12px;
+          width: var(--paper-dialog-icon-size);
+          height: var(--paper-dialog-icon-size);
         }
 
         .buttons {
@@ -79,9 +95,11 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
         paper-button.accept:not([disabled]){
           background-color: var(--success-color);
         }
+
+
       </style>
 
-      <paper-dialog id="simpleDialog" modal dialog>
+      <paper-dialog id="simpleDialog" class="modalNoApp" modal dialog>
         <iron-a11y-keys id="a11ySignIn" keys="enter" on-keys-pressed="_accept"></iron-a11y-keys>
         <div class="header">
           <iron-icon icon="{{dialogIcon}}"></iron-icon><h3>{{localize(dialogTitle)}}</h3>
@@ -205,7 +223,10 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
       keyboardType: {
         type: String,
         value: 'keyboard'
-      }
+      },
+      viewMode: {
+        type: String,
+      },
     };
   }
 
@@ -272,6 +293,10 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
           }
         }
 
+        if (this.viewMode === 'KIOSK'){
+          paperDialogWidth = "70%";
+        }
+
         if (this.dialogInputValue) {
           this.set('formData.numberValue', this.dialogInputValue);
           this.set('keyboardValue', this.dialogInputValue);
@@ -292,6 +317,9 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
         if (this.showKeyboard == "S") {
           paperDialogWidth = "95%";
         }
+        if (this.viewMode === 'KIOSK'){
+          paperDialogWidth = "95%";
+        }
         break;
 
       default:
@@ -308,6 +336,9 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
         if (this.showKeyboard == "S") {
           paperDialogWidth = "95%";
         }
+        if (this.viewMode === 'KIOSK'){
+          paperDialogWidth = "95%";
+        }
         break;
     }
 
@@ -315,7 +346,7 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
       timeOut.after(500),
       () => this._setFocus()
     );
-    
+
     this.updateStyles({
       '--paper-dialog-width':  paperDialogWidth,
     });
