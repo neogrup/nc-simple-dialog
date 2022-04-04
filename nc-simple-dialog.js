@@ -96,7 +96,10 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
           background-color: var(--success-color);
         }
 
-
+        iron-a11y-keys{
+          margin: 0px;
+          padding: 0px;
+        }
       </style>
 
       <paper-dialog id="simpleDialog" class="modalNoApp" modal dialog>
