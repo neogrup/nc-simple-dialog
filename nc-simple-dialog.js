@@ -96,7 +96,10 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
           background-color: var(--success-color);
         }
 
-
+        iron-a11y-keys{
+          margin: 0px;
+          padding: 0px;
+        }
       </style>
 
       <paper-dialog id="simpleDialog" class="modalNoApp" modal dialog>
@@ -133,7 +136,7 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
             keyboard-embedded='S'
             keyboard-type="{{keyboardType}}"
             value="{{keyboardValue}}"
-            >
+            keyboard-current-input="{{keyboardCurrentInput}}">
           </nc-keyboard>
         </div>
         <div class="buttons">
@@ -224,6 +227,9 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
         type: String,
         value: 'keyboard'
       },
+      keyboardCurrentInput: {
+        type: Object
+      },
       viewMode: {
         type: String,
       },
@@ -244,6 +250,7 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
     this.formData = {};
     this.keyboardValue = "";
     this.currentInput = "";
+    this.keyboardCurrentInput = {};
 
     if (this.dialogInputNotRequired){
       this.inputRequired = false;
@@ -357,6 +364,7 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
     input = this.shadowRoot.querySelector("#" + this.currentInput);
 
     if (input){
+      this.keyboardCurrentInput = input;
       input.value = this.keyboardValue;
     }
   }
@@ -368,6 +376,7 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
       let input;
       input = this.shadowRoot.querySelector("#" + this.currentInput);
       if (input){
+        this.keyboardCurrentInput = input;
         this.keyboardValue = input.value;
       }
     }
@@ -384,8 +393,9 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
   _setFocus(){
     let input;
     input = this.shadowRoot.querySelector("#" + this.currentInput);
-
+    
     if (input){
+      this.keyboardCurrentInput = input;
       if (!input.focused){
         input.focus();
         input.inputElement.inputElement.select();
