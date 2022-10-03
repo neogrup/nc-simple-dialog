@@ -55,6 +55,14 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
           };
         }
 
+        div.content > div.content-check {
+          @apply --layout-horizontal;
+          @apply --layout-center;
+          @apply --layout-center-justified;
+          margin-top: 20px;
+          font-size: var(--paper-dialog-font-size);
+        }
+
         paper-input{
           --paper-input-container-input: {
             font-size: var(--paper-dialog-font-size);
@@ -119,14 +127,26 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
           <div class="content-numeric">
             <template is="dom-if" if="{{showNumberInput}}">
               <div class="numeric">
-                <paper-input id="numberInput" hidden$="[[hideNumberInput]]" type="number" step="[[dialogInputStep]]" min="[[dialogInputMin]]" max="[[dialogInputMax]]" value="{{formData.numberValue}}" required error-message="{{localize('INPUT_ERROR_INVALID_VALUE')}}" on-focused-changed="_focusChanged" on-value-changed="_valueChanged"></paper-input>
-              </div>
+                <template is="dom-if" if="{{!dialogCanBypassInputMax}}">              
+                  <paper-input id="numberInput" hidden$="[[hideNumberInput]]" type="number" step="[[dialogInputStep]]" min="[[dialogInputMin]]" max="[[dialogInputMax]]" value="{{formData.numberValue}}" required error-message="{{localize('INPUT_ERROR_INVALID_VALUE')}}" on-focused-changed="_focusChanged" on-value-changed="_valueChanged"></paper-input>
+                </template>
+                <template is="dom-if" if="{{dialogCanBypassInputMax}}">              
+                  <paper-input id="numberInput" hidden$="[[hideNumberInput]]" type="number" step="[[dialogInputStep]]" min="[[dialogInputMin]]" value="{{formData.numberValue}}" required error-message="{{localize('INPUT_ERROR_INVALID_VALUE')}}" on-focused-changed="_focusChanged" on-value-changed="_valueChanged"></paper-input>
+                </template>
+              <div>              
             </template>
             
             <template is="dom-if" if="{{showNumberInputKeyboard}}">
               <div class="numeric">
-                <paper-input id="numberInputKeyboard" hidden$="[[hideNumberInputKeyboard]]" type="text" value="{{formData.numberValue}}" required error-message="{{localize('INPUT_ERROR_INVALID_VALUE')}}" on-focused-changed="_focusChanged" on-value-changed="_valueChanged">
+                <paper-input id="numberInputKeyboard" hidden$="[[hideNumberInputKeyboard]]" type="text" value="{{formData.numberValue}}" required error-message="{{localize('INPUT_ERROR_INVALID_VALUE')}}" on-focused-changed="_focusChanged" on-value-changed="_valueChanged"></paper-input>
+                
               </div>
+            </template>
+            
+          </div>
+          <div class="content-check">
+            <template is="dom-if" if="{{showCanBypassInputMax}}">
+              <paper-checkbox checked="{{byPassMaxCustomers}}" >{{localize('INPUT_QUANTITY_IGNORE')}}</paper-checkbox>
             </template>
           </div>
         </div>
@@ -189,7 +209,22 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
         type: Number,
         value: 9999
       },
-      
+      dialogCanBypassInputMax: {
+        type: Boolean,
+        value: false
+      },
+      byPassMaxCustomers: {
+        type: Boolean,
+        value: false
+      },
+      showCanBypassInputMax: {
+        type: Boolean,
+        value: false
+      },
+      byPassMaxCustomers: {
+        type: Boolean,
+        value: false
+      },
       dialogInputValue: String,
       dialogCloseButtonDisabled: {
         type: Boolean,
@@ -450,6 +485,17 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
               inputInvalid = true;
               this._setFocus();
             }
+          }
+          if (!this.byPassMaxCustomers) {
+            if (parseInt(this.dialogInputMax) < parseInt(this.formData.numberValue)) {
+              input.invalid=true;
+              inputInvalid = true;
+              this.showCanBypassInputMax = true;
+              this._setFocus();
+            }
+          } else {
+            this.byPassMaxCustomers = false; //set again as not valid for the next check
+            this.showCanBypassInputMax = false;
           }
           break;
         case 'email':
