@@ -275,6 +275,7 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
     super.connectedCallback();
     this.useKeyIfMissing = true;
     this.loadResources(this.resolveUrl(this.urlTranslate));
+    this.dialogCanBypassInputMax = false; // because initalization does not work
   }
 
   open(){
@@ -471,6 +472,11 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
     let inputInvalid = false;
 
     input = this.shadowRoot.querySelector("#" + this.currentInput);
+
+    if (input === undefined) { // In this case the control does not exists (programming error), so, do validate to allow exit
+      return !inputInvalid;
+    }
+
     input.validate();
     
     if (input.invalid === true){
