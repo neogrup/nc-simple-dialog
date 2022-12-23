@@ -10,7 +10,7 @@
     "url": "https://github.com/NEOGRUP/nc-simple-dialog"
   },
   "name": "@neogrup/nc-simple-dialog",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "resolutions": {
     "inherits": "2.0.3",
     "samsam": "1.1.3",

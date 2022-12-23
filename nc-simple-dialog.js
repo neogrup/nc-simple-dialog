@@ -275,7 +275,6 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
     super.connectedCallback();
     this.useKeyIfMissing = true;
     this.loadResources(this.resolveUrl(this.urlTranslate));
-    this.dialogCanBypassInputMax = false; // because initalization does not work
   }
 
   open(){
@@ -287,6 +286,10 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
     this.keyboardValue = "";
     this.currentInput = "";
     this.keyboardCurrentInput = {};
+
+    if (this.dialogCanBypassInputMax === undefined) {
+      this.dialogCanBypassInputMax = false; // to protect when it is not informed
+    }
 
     if (this.dialogInputNotRequired){
       this.inputRequired = false;
@@ -473,7 +476,7 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
 
     input = this.shadowRoot.querySelector("#" + this.currentInput);
 
-    if (input === undefined) { // In this case the control does not exists (programming error), so, do validate to allow exit
+    if ((input === undefined) || (input === null)) { // In this case the control does not exists (programming error), so, do validate to allow exit
       return !inputInvalid;
     }
 
