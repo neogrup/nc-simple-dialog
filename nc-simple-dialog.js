@@ -389,7 +389,7 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
     }
 
     this._setFocusDebouncer = Debouncer.debounce(this._setFocusDebouncer,
-      timeOut.after(500),
+      timeOut.after(850),
       () => this._setFocus()
     );
 
