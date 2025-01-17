@@ -343,7 +343,7 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
           paperDialogWidth = "70%";
         }
 
-        if (this.dialogInputValue) {
+        if (this.dialogInputValue) { // TODO falla per aquí?
           this.set('formData.numberValue', this.dialogInputValue);
           this.set('keyboardValue', this.dialogInputValue);
         } 
@@ -389,7 +389,7 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
     }
 
     this._setFocusDebouncer = Debouncer.debounce(this._setFocusDebouncer,
-      timeOut.after(850),
+      timeOut.after(550),
       () => this._setFocus()
     );
 
@@ -450,6 +450,9 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
       switch (this.dialogInputType) {
         case 'number':
           formDataValue = this.formData.numberValue;
+          if (typeof formDataValue == 'undefined') { // This value can be not defined, so do not accept
+            return;
+          }
           formDataValue = formDataValue.toString().replace(',','.');
           break;
         case 'email':
