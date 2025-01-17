@@ -131,7 +131,7 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
                   <paper-input id="numberInput" hidden$="[[hideNumberInput]]" type="number" step="[[dialogInputStep]]" min="[[dialogInputMin]]" max="[[dialogInputMax]]" value="{{formData.numberValue}}" required error-message="{{localize('INPUT_ERROR_INVALID_VALUE')}}" on-focused-changed="_focusChanged" on-value-changed="_valueChanged"></paper-input>
                 </template>
                 <template is="dom-if" if="{{dialogCanBypassInputMax}}">              
-                  <paper-input id="numberInput" hidden$="[[hideNumberInput]]" type="number" step="[[dialogInputStep]]" min="[[dialogInputMin]]" value="{{formData.numberValue}}" required error-message="{{localize('INPUT_ERROR_INVALID_VALUE')}}" on-focused-changed="_focusChanged" on-value-changed="_valueChanged"></paper-input>
+                  <paper-input id="numberInputMax" hidden$="[[hideNumberInput]]" type="number" step="[[dialogInputStep]]" min="[[dialogInputMin]]" value="{{formData.numberValue}}" required error-message="{{localize('INPUT_ERROR_INVALID_VALUE')}}" on-focused-changed="_focusChanged" on-value-changed="_valueChanged"></paper-input>
                 </template>
               <div>              
             </template>
@@ -313,13 +313,18 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
             this.shadowRoot.querySelector("#numberInputKeyboard").invalid = false;
           }
         } else {
-          this.currentInput = "numberInput"
+          if (this.dialogCanBypassInputMax) {
+            this.currentInput = "numberInputMax"
+          } else {
+            this.currentInput = "numberInput"
+          }
+          
           this.hideNumberInput = false;
           this.hideNumberInputKeyboard = true;
           this.showNumberInput = true;
           this.showNumberInputKeyboard = false;
-          if (this.shadowRoot.querySelector("#numberInput")) {
-            this.shadowRoot.querySelector("#numberInput").invalid = false;
+          if (this.shadowRoot.querySelector("#"+this.currentInput)) {
+            this.shadowRoot.querySelector("#"+this.currentInput).invalid = false;
           }
           // Default values
           if (!this.dialogInputStep){
@@ -343,7 +348,7 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
           paperDialogWidth = "70%";
         }
 
-        if (this.dialogInputValue) { // TODO falla per aquí?
+        if (this.dialogInputValue) { 
           this.set('formData.numberValue', this.dialogInputValue);
           this.set('keyboardValue', this.dialogInputValue);
         } 
