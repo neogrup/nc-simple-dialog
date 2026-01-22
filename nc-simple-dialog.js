@@ -115,7 +115,7 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
         <div class="header">
           <iron-icon icon="{{dialogIcon}}"></iron-icon><h3>{{localize(dialogTitle)}}</h3>
           <template is="dom-if" if="{{dialogSubTitle1}}">
-            <br/><p>{{localize(dialogSubTitle1)}}</p>
+            <div style="display: block; width: 100%;"><p style="display: block; width: 100%;">{{localize(dialogSubTitle1)}}</p></div>
           </template>
         </div>
         <div class="content">
