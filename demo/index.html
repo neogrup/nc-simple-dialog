@@ -4,6 +4,7 @@
 Copyright (c) 2017 Neo
 -->
 <html lang="es">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
@@ -26,6 +27,7 @@ Copyright (c) 2017 Neo
   </custom-style>
 
 </head>
+
 <body>
   <div class="vertical-section-container centered">
     <h3>nc-simple-dialog demo</h3>
@@ -37,7 +39,7 @@ Copyright (c) 2017 Neo
   </div>
 
   <script type="module">
-    import {html, PolymerElement} from '@polymer/polymer/polymer-element.js';
+    import { html, PolymerElement } from '@polymer/polymer/polymer-element.js';
     import '@polymer/paper-button/paper-button.js';
 
     class DemoNcSimpleDialog extends PolymerElement {
@@ -50,6 +52,8 @@ Copyright (c) 2017 Neo
               --error-color: #F44336;
               --success-color: #388E3C;
               display: block;
+              --paper-dialog-height: 95%;
+              --paper-dialog-width: 600px;
             }
             paper-button{
               margin: 10px 5px;
@@ -65,6 +69,7 @@ Copyright (c) 2017 Neo
               language="es"
               dialog-icon="card-membership"
               dialog-title="SELECT_LOYALTY_CARD_DIALOG_TITLE"
+              dialog-sub-title1="SELECT_LOYALTY_CARD_DIALOG_SUBTITLE"
               url-translate="/demo/data/translations.json"
               on-accepted="_accepted"
               show-keyboard="N">
@@ -72,15 +77,16 @@ Copyright (c) 2017 Neo
         `;
       }
 
-      _open(){
+      _open() {
         this.$.simpleDialog.open();
       }
 
-      _accepted(){
+      _accepted() {
         console.log('ok !')
       }
     }
     window.customElements.define('demo-nc-simple-dialog', DemoNcSimpleDialog);
   </script>
 </body>
+
 </html>

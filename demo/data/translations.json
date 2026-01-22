@@ -1,12 +1,11 @@
 {
-  "en":{
-  },
+  "en": {},
   "es": {
     "BUTTON_ACCEPT": "Aceptar",
     "BUTTON_CLOSE": "Cerrar",
     "INPUT_ERROR_REQUIRED": "Campo obligatorio",
-    "SELECT_LOYALTY_CARD_DIALOG_TITLE": "Pase o introduzca la tarjeta de fidelización"
+    "SELECT_LOYALTY_CARD_DIALOG_TITLE": "Asignar tarjeta",
+    "SELECT_LOYALTY_CARD_DIALOG_SUBTITLE": "Pase o introduzca la tarjeta de fidelización"
   },
-  "ca":{
-  }
+  "ca": {}
 }

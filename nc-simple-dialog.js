@@ -114,10 +114,10 @@ class NcSimpleDialog extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
         <iron-a11y-keys id="a11ySignIn" keys="enter" on-keys-pressed="_accept"></iron-a11y-keys>
         <div class="header">
           <iron-icon icon="{{dialogIcon}}"></iron-icon><h3>{{localize(dialogTitle)}}</h3>
-          <template is="dom-if" if="{{dialogSubTitle1}}">
-            <div style="display: block; width: 100%;"><p style="display: block; width: 100%;">{{localize(dialogSubTitle1)}}</p></div>
-          </template>
         </div>
+        <template is="dom-if" if="{{dialogSubTitle1}}">
+          <div> <p style="flex-basis: 100%; margin: 0;">{{localize(dialogSubTitle1)}}</p> </div>
+        </template>
         <div class="content">
           <div class="content-text">
             <paper-input id="textInput" hidden$="[[hideTextInput]]" type="text" value="{{formData.textValue}}" required="[[inputRequired]]" error-message="{{localize('INPUT_ERROR_REQUIRED')}}" on-focused-changed="_focusChanged" on-value-changed="_valueChanged"></paper-input>
